@@ -1,5 +1,9 @@
 #include "sort.h"
 
+void merge(int *array, size_t low, size_t count, int dir)
+void bitonic_sort_rec(int *array, size_t low, size_t count, int dir)
+void bitonic_sort(int *array, size_t size)
+
 /**
  * merge - Merges two subarrays of the given array
  *
