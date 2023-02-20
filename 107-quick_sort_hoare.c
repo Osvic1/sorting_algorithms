@@ -1,89 +1,95 @@
 #include "sort.h"
 
-void swap(int *array, int a, int b);
-int partition(int *array, int lo, int hi, size_t size);
-void quicksort(int *array, int lo, int hi, size_t size);
+void swap_ints(int *a, int *b);
+int hoare_partition(int *array, size_t size, int left, int right);
+void hoare_sort(int *array, size_t size, int left, int right);
 void quick_sort_hoare(int *array, size_t size);
 
 /**
- * swap - Swaps two elements in an array
- * @array: Array containing the elements
- * @a: Index of the first element to swap
- * @b: Index of the second element to swap
+ * swap_ints - Swap two integers in an array.
+ * @a: The first integer to swap.
+ * @b: The second integer to swap.
  */
-void swap(int *array, int a, int b)
+void swap_ints(int *a, int *b)
 {
-	int temp;
+	int tmp;
 
-	temp = array[a];
-	array[a] = array[b];
-	array[b] = temp;
+	tmp = *a;
+	*a = *b;
+	*b = tmp;
 }
 
 /**
- * partition - Lomuto partition scheme
- * @array: Array to sort
- * @lo: Starting index of the array
- * @hi: Ending index of the array
- * @size: Size of the array
+ * hoare_partition - Order a subset of an array of integers
+ *                   according to the hoare partition scheme.
+ * @array: The array of integers.
+ * @size: The size of the array.
+ * @left: The starting index of the subset to order.
+ * @right: The ending index of the subset to order.
  *
- * Return: Index of the partition
+ * Return: The final partition index.
+ *
+ * Description: Uses the last element of the partition as the pivot.
+ * Prints the array after each swap of two elements.
  */
-int partition(int *array, int lo, int hi, size_t size)
+int hoare_partition(int *array, size_t size, int left, int right)
 {
-	int pivot, i, j;
+	int pivot, above, below;
 
-	pivot = array[hi];
-	i = lo - 1;
-	for (j = lo; j < hi; j++)
+	pivot = array[right];
+	for (above = left - 1, below = right + 1; above < below;)
 	{
-		if (array[j] <= pivot)
+		do {
+			above++;
+		} while (array[above] < pivot);
+		do {
+			below--;
+		} while (array[below] > pivot);
+
+		if (above < below)
 		{
-			i++;
-			if (i != j)
-			{
-				swap(array, i, j);
-				print_array(array, size);
-			}
+			swap_ints(array + above, array + below);
+			print_array(array, size);
 		}
 	}
-	if (array[i + 1] > array[hi])
-	{
-		swap(array, i + 1, hi);
-		print_array(array, size);
-	}
-	return (i + 1);
+
+	return (above);
 }
 
 /**
- * quicksort - Sorts an array of integers in ascending order using the
- * quicksort algorithm with Lomuto partition scheme
- * @array: Array to sort
- * @lo: Starting index of the array
- * @hi: Ending index of the array
- * @size: Size of the array
+ * hoare_sort - Implement the quicksort algorithm through recursion.
+ * @array: An array of integers to sort.
+ * @size: The size of the array.
+ * @left: The starting index of the array partition to order.
+ * @right: The ending index of the array partition to order.
+ *
+ * Description: Uses the Hoare partition scheme.
  */
-void quicksort(int *array, int lo, int hi, size_t size)
+void hoare_sort(int *array, size_t size, int left, int right)
 {
-	int p;
+	int part;
 
-	if (lo < hi)
+	if (right - left > 0)
 	{
-		p = partition(array, lo, hi, size);
-		quicksort(array, lo, p - 1, size);
-		quicksort(array, p + 1, hi, size);
+		part = hoare_partition(array, size, left, right);
+		hoare_sort(array, size, left, part - 1);
+		hoare_sort(array, size, part, right);
 	}
 }
 
 /**
- * quick_sort_hoare - Sorts an array of integers in ascending order using the
- * quicksort algorithm with Lomuto partition scheme
- * @array: Array to sort
- * @size: Size of the array
+ * quick_sort_hoare - Sort an array of integers in ascending
+ *                    order using the quicksort algorithm.
+ * @array: An array of integers.
+ * @size: The size of the array.
+ *
+ * Description: Uses the Hoare partition scheme. Prints
+ * the array after each swap of two elements.
  */
 void quick_sort_hoare(int *array, size_t size)
 {
 	if (array == NULL || size < 2)
 		return;
-	quicksort(array, 0, size - 1, size);
+
+	hoare_sort(array, size, 0, size - 1);
 }
