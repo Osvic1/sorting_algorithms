@@ -5,8 +5,8 @@
 #include <stdlib.h>
 
 /* Comparison direction macros for bitonic sort */
-#define ASCENDING 1
-#define DESCENDING 0
+#define UP 1
+#define DOWN 0
 
 /**
  * enum bool - Enumeration of Boolean values.
