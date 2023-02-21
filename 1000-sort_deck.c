@@ -1,69 +1,127 @@
-#include "deck.h"
+#include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include "deck.h"
+
+#define CARD_VALUES "Ace 2 3 4 5 6 7 8 9 10 Jack Queen King"
+#define CARD_SUITS "Spades Hearts Clubs Diamonds"
 
 /**
- * compare_cards - compares two cards by value and kind
- * @a: pointer to first card
- * @b: pointer to second card
- * Return: negative if a < b, zero if a == b, positive if a > b
+ * _get_card_value - get the value of a card
+ * @value: value of a card
+ *
+ * Return: an integer representing the value of a card
  */
-int compare_cards(const void *a, const void *b)
+static int _get_card_value(const char *value)
 {
-char *values[] = {"Ace", "2", "3", "4", "5", "6", "7", "8",
-"9", "10", "Jack", "Queen", "King"};
-kind_t kinds[] = {SPADE, HEART, CLUB, DIAMOND};
-const card_t *card_a = *(const card_t **)a;
-const card_t *card_b = *(const card_t **)b;
-size_t i;
+    char *p = (char *)CARD_VALUES;
+    int val = 1;
 
-for (i = 0; i < 13; i++)
-if (card_a->value == values[i] || card_b->value == values[i])
-break;
-if (card_a->value != card_b->value)
-return (i % 13 - (i + 1) % 13);
-for (i = 0; i < 4; i++)
-if (card_a->kind == kinds[i] || card_b->kind == kinds[i])
-break;
-return (i % 4 - (i + 1) % 4);
+    while (*p)
+    {
+        if (*p == *value)
+            return (val);
+        if (*p == ' ')
+            val++;
+        p++;
+    }
+
+    return (-1);
 }
 
 /**
- * sort_deck - sorts a deck of cards using qsort
- * @deck: pointer to pointer to head of doubly linked list
+ * _get_card_suit - get the suit of a card
+ * @suit: suit of a card
+ *
+ * Return: an integer representing the suit of a card
+ */
+static int _get_card_suit(const char *suit)
+{
+    char *p = (char *)CARD_SUITS;
+    int val = 1;
+
+    while (*p)
+    {
+        if (*p == *suit)
+            return (val);
+        if (*p == ' ')
+            val++;
+        p++;
+    }
+
+    return (-1);
+}
+
+/**
+ * _sort_deck_node - sort two adjacent deck nodes
+ * @left: left deck node
+ * @right: right deck node
+ */
+static void _sort_deck_node(deck_node_t **left, deck_node_t **right)
+{
+    deck_node_t *tmp = *left;
+
+    if (!(*left)->prev)
+    {
+        *left = (*right);
+        *right = tmp;
+        tmp = (*left)->prev;
+        (*left)->prev = NULL;
+        (*left)->next = tmp;
+        tmp->prev = (*left);
+    }
+    else if (!(*right)->next)
+    {
+        tmp = (*left)->prev;
+        (*left)->prev = (*right);
+        (*left)->next = NULL;
+        (*right)->prev = tmp;
+        (*right)->next = (*left);
+        tmp->next = (*right);
+    }
+    else
+    {
+        tmp = (*left)->prev;
+        (*left)->prev = (*right);
+        (*left)->next = (*right)->next;
+        (*right)->prev = tmp;
+        (*right)->next->prev = (*left);
+        (*right)->next = (*left);
+        tmp->next = (*right);
+    }
+}
+
+/**
+ * sort_deck - sorts a deck of cards
+ * @deck: pointer to head of doubly linked list of cards
  */
 void sort_deck(deck_node_t **deck)
 {
-deck_node_t **array;
-deck_node_t *node;
-size_t n = 0, i;
+    deck_node_t *left, *right, *tmp;
+    int left_val, right_val;
 
-if (!deck || !*deck || !(*deck)->next)
-return;
+    if (!deck || !(*deck) || !((*deck)->next))
+        return;
 
-    /* create an array of pointers to nodes */
-node = *deck;
-while (node)
-n++, node = node->next;
-
-array = malloc(sizeof(*array) * n);
-
-for (i = 0, node = *deck; i < n; i++, node = node->next)
-array[i] = node;
-
-   /* sort the array using compare_cards function */
-qsort(array, n, sizeof(*array), compare_cards);
-
-   /* rearrange the nodes according to the sorted array */
-for (i = 0; i < n - 1; i++)
-{
-array[i]->next = array[i + 1];
-array[i + 1]->prev = array[i];
-}
-
-   /* update head and tail of list */
-array[0]->prev = NULL;
-array[n - 1]->next = NULL;
-*deck = array[0];
-
-free(array);
+    for (tmp = *deck; tmp->next; tmp = tmp->next)
+    {
+        right = tmp->next;
+        left = tmp;
+        while (right)
+        {
+            left_val = _get_card_value(left->card->value);
+            right_val = _get_card_value(right->card->value);
+            if (right_val < left_val)
+            {
+                _sort_deck_node(&left, &right);
+                if (!left->prev)
+                    *deck = left;
+                print_deck(*deck);
+                left_val = _get_card_value(left->card->value);
+            }
+            right = left->next;
+            left = left->prev;
+        }
+    }
 }
